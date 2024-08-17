@@ -35,7 +35,8 @@ async function run() {
             };
             const sortCriteria = sortOptions[sort] || { price: 1 }; 
             const query = search ? { productName: { $regex: search, $options: 'i' } } : {};
-            const result = await productsCollection.find(query).sort(sortCriteria).skip(page * size).limit(size).toArray();
+            const result = await productsCollection
+            .find(query).sort(sortCriteria).skip(page * size).limit(size).toArray();
             res.send(result);
         });
             
