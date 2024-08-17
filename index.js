@@ -22,20 +22,23 @@ async function run() {
     try {
         await client.connect();
         const productsCollection = client.db("ph-jobTask").collection('products')
+        
         app.get('/products', async (req, res) => {
             const size = parseInt(req.query.size) || 9;
             const page = parseInt(req.query.page) || 0;
             const sort = req.query.sort || 'priceLowToHigh';
+            const search = req.query.search || '';
             const sortOptions = {
                 priceLowToHigh: { price: 1 },
                 priceHighToLow: { price: -1 },
                 dateNewestFirst: { productCreationDateTime: -1 },
             };
-            const sortCriteria = sortOptions[sort] || { price: 1 };
-            const result = await productsCollection.find().sort(sortCriteria).skip(page * size).limit(size).toArray();
+            const sortCriteria = sortOptions[sort] || { price: 1 }; 
+            const query = search ? { productName: { $regex: search, $options: 'i' } } : {};
+            const result = await productsCollection.find(query).sort(sortCriteria).skip(page * size).limit(size).toArray();
             res.send(result);
         });
-                 
+            
         app.get('/productsCount', async (req, res) => {
             const count = await productsCollection.estimatedDocumentCount()
             res.send({ count })
