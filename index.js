@@ -22,7 +22,7 @@ async function run() {
     try {
         await client.connect();
         const productsCollection = client.db("ph-jobTask").collection('products')
-        
+
         app.get('/products', async (req, res) => {
             const size = parseInt(req.query.size) || 9;
             const page = parseInt(req.query.page) || 0;
@@ -35,7 +35,8 @@ async function run() {
             };
             const sortCriteria = sortOptions[sort] || { price: 1 }; 
             const query = search ? { productName: { $regex: search, $options: 'i' } } : {};
-            const result = await productsCollection.find(query).sort(sortCriteria).skip(page * size).limit(size).toArray();
+            const result = await productsCollection
+            .find(query).sort(sortCriteria).skip(page * size).limit(size).toArray();
             res.send(result);
         });
             
