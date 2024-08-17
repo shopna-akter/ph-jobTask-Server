@@ -24,20 +24,42 @@ async function run() {
         const productsCollection = client.db("ph-jobTask").collection('Products')
 
         app.get('/products', async (req, res) => {
-            const size = parseInt(req.query.size) || 9;
-            const page = parseInt(req.query.page) || 0;
-            const sort = req.query.sort || 'priceLowToHigh';
-            const search = req.query.search || '';
-            const sortOptions = {
-                priceLowToHigh: { price: 1 },
-                priceHighToLow: { price: -1 },
-                dateNewestFirst: { productCreationDateTime: -1 },
-            };
-            const sortCriteria = sortOptions[sort] || { price: 1 }; 
-            const query = search ? { productName: { $regex: search, $options: 'i' } } : {};
-            const result = await productsCollection.find(query).sort(sortCriteria).skip(page * size).limit(size).toArray();
-            res.send(result);
+            try {
+                // Parse query parameters
+                const size = parseInt(req.query.size, 10) || 9;
+                const page = parseInt(req.query.page, 10) || 0;
+                const sort = req.query.sort || 'priceLowToHigh';
+                const search = req.query.search || '';
+        
+                // Define sorting options
+                const sortOptions = {
+                    priceLowToHigh: { price: 1 },
+                    priceHighToLow: { price: -1 },
+                    dateNewestFirst: { productCreationDateTime: -1 },
+                };
+                
+                // Determine sorting criteria
+                const sortCriteria = sortOptions[sort] || { price: 1 };
+        
+                // Create search query
+                const query = search ? { productName: { $regex: search, $options: 'i' } } : {};
+        
+                // Fetch products from the database
+                const result = await productsCollection
+                    .find(query)
+                    .sort(sortCriteria)
+                    .skip(page * size)
+                    .limit(size)
+                    .toArray();
+                
+                // Send the result
+                res.send(result);
+            } catch (error) {
+                console.error('Error fetching products:', error);
+                res.status(500).send({ error: 'Failed to fetch products' });
+            }
         });
+        
             
         app.get('/productsCount', async (req, res) => {
             const count = await productsCollection.estimatedDocumentCount()
