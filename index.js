@@ -21,7 +21,7 @@ const client = new MongoClient(uri, {
 async function run() {
     try {
         await client.connect();
-        const productsCollection = client.db("ph-jobTask").collection('products')
+        const productsCollection = client.db("ph-jobTask").collection('Products')
 
         app.get('/products', async (req, res) => {
             const size = parseInt(req.query.size) || 9;
