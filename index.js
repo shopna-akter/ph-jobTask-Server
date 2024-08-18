@@ -5,7 +5,12 @@ const { MongoClient, ServerApiVersion } = require('mongodb');
 require('dotenv').config()
 const port = process.env.PORT || 5000
 
-app.use(cors());
+app.use(cors({
+    origin: ["http://localhost:5173",
+        "https://ph-jobtask.web.app",
+        "https://ph-jobtask.firebaseapp.com"],
+    credentials: true
+}))
 app.use(express.json());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.2yyywnk.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
@@ -20,9 +25,8 @@ const client = new MongoClient(uri, {
 
 async function run() {
     try {
-        await client.connect();
+        // await client.connect();
         const productsCollection = client.db("ph-jobTask").collection('products')
-
         app.get('/products', async (req, res) => {
             const size = parseInt(req.query.size) || 9;
             const page = parseInt(req.query.page) || 0;
@@ -89,8 +93,8 @@ async function run() {
             res.send({ count });
         });
 
-        await client.db("admin").command({ ping: 1 });
-        console.log("Pinged your deployment. You successfully connected to MongoDB!");
+        // await client.db("admin").command({ ping: 1 });
+        // console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
     }
 }
