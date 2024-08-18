@@ -28,21 +28,66 @@ async function run() {
             const page = parseInt(req.query.page) || 0;
             const sort = req.query.sort || 'priceLowToHigh';
             const search = req.query.search || '';
+            const brand = req.query.brand || '';
+            const category = req.query.category || '';
+            const minPrice = parseInt(req.query.minPrice) || 50;
+            const maxPrice = parseInt(req.query.maxPrice) || 300;
+
             const sortOptions = {
                 priceLowToHigh: { price: 1 },
                 priceHighToLow: { price: -1 },
                 dateNewestFirst: { productCreationDateTime: -1 },
             };
-            const sortCriteria = sortOptions[sort] || { price: 1 }; 
-            const query = search ? { productName: { $regex: search, $options: 'i' } } : {};
-            const result = await productsCollection.find(query).sort(sortCriteria).skip(page * size).limit(size).toArray();
+            const sortCriteria = sortOptions[sort] || { price: 1 };
+
+            let query = {
+                price: { $gte: minPrice, $lte: maxPrice }
+            };
+
+            if (search) {
+                query.productName = { $regex: search, $options: 'i' };
+            }
+            if (brand) {
+                query.Brand = brand;
+            }
+            if (category) {
+                query.category = category;
+            }
+
+            const result = await productsCollection.find(query)
+                .sort(sortCriteria)
+                .skip(page * size)
+                .limit(size)
+                .toArray();
+
             res.send(result);
         });
-            
+
+
         app.get('/productsCount', async (req, res) => {
-            const count = await productsCollection.estimatedDocumentCount()
-            res.send({ count })
-        })
+            const search = req.query.search || '';
+            const brand = req.query.brand || '';
+            const category = req.query.category || '';
+            const minPrice = parseInt(req.query.minPrice) || 50;
+            const maxPrice = parseInt(req.query.maxPrice) || 300;
+
+            let query = {
+                price: { $gte: minPrice, $lte: maxPrice },
+            };
+
+            if (search) {
+                query.productName = { $regex: search, $options: 'i' };
+            }
+            if (brand) {
+                query.Brand = brand;
+            }
+            if (category) {
+                query.category = category;
+            }
+
+            const count = await productsCollection.countDocuments(query);
+            res.send({ count });
+        });
 
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
